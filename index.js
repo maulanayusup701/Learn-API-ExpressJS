@@ -1,14 +1,41 @@
 const express = require('express');
 const app = express();
-const port = 3000;
 const bodyParser = require('body-parser');
+const db = require('./connection');
+const response = require('./response');
+require('dotenv').config();
+const port = process.env.PORT
+const host = process.env.HOST
 
 app.use(bodyParser.json())
 
-app.get('/', (req, res) => {
-    console.log({ urlParam: req.query });
-    res.send('Hello World!');
-});
+app.get('/products', (req, res) => {
+    const sql = 'SELECT * FROM products';
+
+    db.query(sql, (err, result) => {
+        response(200, 'Ok', result, res)
+    })
+})
+
+app.get('/product/:id', (req, res) => {
+    const id = req.params.id;
+    const sql = `SELECT * FROM products WHERE id = ${id}`;
+
+    db.query(sql, (err, result) => {
+        // console.log({ id: id });
+        response(200, 'Ok', result, res)
+    })
+})
+
+app.post('/product/create', (req, res) => {
+    const { name, price, description, } = req.body;
+
+    const sql = `INSERT INTO products (name, price, description,) VALUES ('${name}', '${price}', '${description}')`;
+    db.query(sql, (err, result) => {
+        console.log(result);
+    })
+    res.send("oke");
+})
 
 app.post("/register", (req, res) => {
     res.send('User has been created!');
@@ -25,5 +52,5 @@ app.put("/username", (req, res) => {
 })
 
 app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`);
+    console.log(`running app listening at ${host}:${port}`);
 })
