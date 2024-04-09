@@ -22,33 +22,62 @@ app.get('/product/:id', (req, res) => {
     const sql = `SELECT * FROM products WHERE id = ${id}`;
 
     db.query(sql, (err, result) => {
-        // console.log({ id: id });
+        if (err) throw err
         response(200, 'Ok', result, res)
     })
 })
 
-app.post('/product/create', (req, res) => {
-    const { name, price, description, } = req.body;
+app.post('/product', (req, res) => {
+    const { name, price, description } = req.body;
+    const sql = `INSERT INTO products (name, price, description) VALUES ('${name}', ${price}, '${description}')`;
 
-    const sql = `INSERT INTO products (name, price, description,) VALUES ('${name}', '${price}', '${description}')`;
     db.query(sql, (err, result) => {
+        if (err) throw response(500, 'Internal Server Error', err, res)
         console.log(result);
+        if (result?.affectedRows) {
+            const datas = {
+                isSuccess: result.affectedRows,
+                id: result.insertId
+            }
+            response(201, 'Created', datas, res)
+        }
     })
-    res.send("oke");
 })
 
-app.post("/register", (req, res) => {
-    res.send('User has been created!');
+app.put('/product', (req, res) => {
+    const { id, name, price, description } = req.body;
+    const sql = `UPDATE products SET name = '${name}', price = ${price}, description = '${description}' WHERE id = ${id}`;
+
+    db.query(sql, (err, result) => {
+        if (err) response(500, 'Internal Server Error', err, res)
+        if (result?.affectedRows) {
+            const datas = {
+                isSuccess: result.affectedRows,
+                message: result.message
+            }
+            response(200, 'Ok', datas, res)
+        } else {
+            response(404, 'Not Found', null, res)
+        }
+    })
 })
 
-app.post("/login", (req, res) => {
-    console.log({ requestFromOutside: req.body });
-    res.send('User has been logged in!');
-})
+app.delete('/product', (req, res) => {
+    const { id } = req.body;
+    const sql = `DELETE FROM products WHERE id = ${id}`;
 
-app.put("/username", (req, res) => {
-    console.log({ updateData: req.body });
-    res.send("Username has been updated");
+    db.query(sql, (err, result) => {
+        if (err) response(500, 'Internal Server Error', err, res)
+        if (result?.affectedRows) {
+            const datas = {
+                isDelete: result.affectedRows,
+                message: result.message
+            }
+            response(200, 'Ok', datas, res)
+        } else {
+            response(404, 'Not Found', null, res)
+        }
+    })
 })
 
 app.listen(port, () => {
